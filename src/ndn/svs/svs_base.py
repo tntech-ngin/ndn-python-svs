@@ -7,6 +7,7 @@
 
 # Basic Libraries
 from typing import Optional, Callable, Tuple
+import asyncio
 # NDN Imports
 from ndn.app import NDNApp
 from ndn.encoding import Name, MetaInfo, InterestParam, BinaryStr, FormalName, SignatureType, make_data, parse_data
@@ -28,7 +29,7 @@ class SVSyncBase:
         SVSyncLogger.info("SVSync: started an svsync type")
         self.app, self.syncPrefix, self.dataPrefix, self.groupPrefix, self.nid, self.updateCallback = app, syncPrefix, dataPrefix, groupPrefix, nid, updateCallback
         self.storage = MemoryStorage() if not storage else storage
-        self.secOptions = securityOptions if securityOptions is not None else SecurityOptions(SigningInfo(SignatureType.DIGEST_SHA256), ValidatingInfo(ValidatingInfo.get_validator(SignatureType.DIGEST_SHA256)), SigningInfo(SignatureType.DIGEST_SHA256), [])
+        self.secOptions = securityOptions if securityOptions is not None else SecurityOptions(SigningInfo(SignatureType.DIGEST_SHA256), ValidatingInfo(ValidatingInfo.get_validator(SignatureType.DIGEST_SHA256)), SigningInfo(SignatureType.DIGEST_SHA256), [], None)
         self.app.route(self.dataPrefix)(self.onDataInterest)
         self.core = Core(self.app, self.syncPrefix, self.groupPrefix, self.nid, self.updateCallback, self.secOptions)
         SVSyncLogger.info(f'SVSync: started listening to {Name.to_str(self.dataPrefix)}')
@@ -44,7 +45,10 @@ class SVSyncBase:
                 SVSyncLogger.info(f'SVSync: fetching data {Name.to_str(name)}')
                 _, _, _, pkt = await self.app.express_interest(name, need_raw_packet=True, must_be_fresh=True, can_be_prefix=True, lifetime=DATA_INTEREST_LIFETIME)
                 ex_int_name, meta_info, content, sig_ptrs = parse_data(pkt)
-                isValidated = await self.secOptions.validate(ex_int_name, sig_ptrs)
+                if self.secOptions.envelope is not None:
+                    isValidated = await self.secOptions.envelope.validate(ex_int_name, sig_ptrs)
+                else:
+                    isValidated = await self.secOptions.validate(ex_int_name, sig_ptrs)
                 if not isValidated:
                     return None
                 SVSyncLogger.info(f'SVSync: received data {bytes(content)}')
@@ -67,7 +71,11 @@ class SVSyncBase:
     def publishData(self, data:bytes) -> None:
         segno = self.core.getSeqno()+1
         name = self.getDataName(self.nid, segno)
-        data_packet = make_data(name, MetaInfo(freshness_period=DATA_PACKET_FRESHNESS), content=data, signer=self.secOptions.dataSig.signer)
+        envelope_signed = None
+        if self.secOptions.envelope is not None:
+            envelope_signed = asyncio.run(self.secOptions.envelope.sign_data(name, MetaInfo(freshness_period=DATA_PACKET_FRESHNESS), content=data))
+        data_packet = envelope_signed if envelope_signed is not None else \
+                      make_data(name, MetaInfo(freshness_period=DATA_PACKET_FRESHNESS), content=data, signer=self.secOptions.dataSig.signer)
         if len(data_packet) > NDN_MTU:
             raise SVSyncPublicationTooLarge(f"A SVSync Publication can not be over NDN's MTU ({self.NDN_MTU}).")
         SVSyncLogger.info(f'SVSync: publishing data {Name.to_str(name)}')

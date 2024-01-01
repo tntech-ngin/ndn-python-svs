@@ -8,6 +8,7 @@ packages = [{include = "src"}]
 [tool.poetry.dependencies]
 python = "^3.10"
 ndn-storage = "^0.2.3"
+envelope = {path = "/home/tianyuan/dev/trust-info-base"}
 
 [tool.poetry.group.dev.dependencies]
 python-ndn = "^0.4.1"
