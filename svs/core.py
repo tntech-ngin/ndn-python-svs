@@ -65,8 +65,18 @@ class SVSyncCore:
         name = self.syncPrefix + [ self.vector.to_component() ]
         logging.info(f'SVSyncCore: sent sync {Name.to_str(name)}')
         try:
-            data_name, meta_info, content = await self.app.express_interest(
-                name, signer=self.secOptions.syncSig.signer, must_be_fresh=True, can_be_prefix=True, lifetime=1000)
+            envelope_signed = None
+            if self.secOptions.envelope is not None:
+                intParam = InterestParam()
+                intParam.must_be_fresh = True
+                intParam.can_be_prefix = True
+                intParam.lifetime = 1000
+                final_name, envelope_signed = self.secOptions.envelope.sign_interest(name, intParam)
+            if envelope_signed:
+                _, _, _, = await self.app.express_raw_interest(final_name, intParam, envelope_signed)
+            else:
+                _, _, _, = await self.app.express_interest(name, signer=self.secOptions.syncSig.signer, 
+                                                           must_be_fresh=True, can_be_prefix=True, lifetime=1000)
         except (InterestNack, InterestTimeout, InterestCanceled, ValidationFailure) as e:
             pass
     def sendSyncInterest(self) -> None:
