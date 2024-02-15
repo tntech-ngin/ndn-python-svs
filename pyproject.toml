@@ -8,7 +8,7 @@ packages = [{include = "svs"}]
 [tool.poetry.dependencies]
 python = "^3.10"
 ndn-storage = "^0.2.3"
-envelope = {path = "/home/tianyuan/dev/trust-info-base"}
+envelope = { git = "https://github.com/tianyuan129/trust-info-base.git" }
 
 [tool.poetry.group.dev.dependencies]
 python-ndn = "^0.4.1"

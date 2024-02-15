@@ -186,8 +186,10 @@ ndn-python-repo = "^0.3"
 python-ndn = "^0.4.1"
 
 [package.source]
-type = "directory"
-url = "../trust-info-base"
+type = "git"
+url = "https://github.com/tianyuan129/trust-info-base.git"
+reference = "HEAD"
+resolved_reference = "74d41f065e1ba27054980c0607814d337183fe48"
 
 [[package]]
 name = "frozenlist"
@@ -786,4 +788,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "7fd5aba5dcf648de713b7210399f1d79be555f64852749c5ce55abc2c13f2965"
+content-hash = "0891cbe24d7f600570b5e2a66943eefea2fd4ea15d4f63d6a4f100d937c5a715"
