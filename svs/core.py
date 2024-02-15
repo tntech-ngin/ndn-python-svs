@@ -71,7 +71,7 @@ class SVSyncCore:
                 intParam.must_be_fresh = True
                 intParam.can_be_prefix = True
                 intParam.lifetime = 1000
-                final_name, envelope_signed = self.secOptions.envelope.sign_interest(name, intParam)
+                envelope_signed, final_name = self.secOptions.envelope.sign_interest(name, intParam)
             if envelope_signed:
                 _, _, _, = await self.app.express_raw_interest(final_name, intParam, envelope_signed)
             else:
@@ -114,7 +114,10 @@ class SVSyncCore:
         logging.info(f'SVSyncCore: received sync {Name.to_str(int_name)}')
         aio.get_event_loop().create_task(self.onSyncInterestHelper(int_name, int_param, _app_param, sig_ptrs))
     async def onSyncInterestHelper(self, int_name:FormalName, int_param:InterestParam, _app_param:Optional[BinaryStr], sig_ptrs:SignaturePtrs) -> None:
-        isValidated = await self.secOptions.syncVal.validate(int_name, sig_ptrs)
+        if self.secOptions.envelope:
+            isValidated = await self.secOptions.envelope.validate(int_name, sig_ptrs)
+        else:
+            isValidated = await self.secOptions.syncVal.validate(int_name, sig_ptrs)
         if not isValidated:
             return
 

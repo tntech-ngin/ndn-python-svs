@@ -47,7 +47,10 @@ class SVSyncBase():
                 logging.info(f'SVSync: fetching data {Name.to_str(name)}')
                 _, _, _, pkt = await self.app.express_interest(name, need_raw_packet=True, must_be_fresh=True, can_be_prefix=False, lifetime=6000)
                 ex_int_name, meta_info, content, sig_ptrs = parse_data(pkt)
-                isValidated = await self.secOptions.validate(ex_int_name, sig_ptrs)
+                if self.secOptions.envelope:
+                    isValidated = await self.secOptions.envelope.validate(ex_int_name, sig_ptrs)
+                else:
+                    isValidated = await self.secOptions.validate(ex_int_name, sig_ptrs)
                 if not isValidated:
                     return None
                 logging.info(f'SVSync: received data {bytes(content)}')

@@ -30,7 +30,7 @@ logging.basicConfig(format='[{asctime}]{levelname}:{message}',
                     style='{')
 
 app = NDNApp()
-async def prepare_keys(groupprefix, nodeids: List):
+async def prepare_keys(nodeids: List):
 
     basedir = os.path.dirname(os.path.abspath(sys.argv[0]))
     secParamsdir = os.path.join(basedir, 'secParams')
@@ -46,6 +46,9 @@ async def prepare_keys(groupprefix, nodeids: List):
     #root: #site/#KEY
     #node: _/#KEY <= #root
     #msg: _/"data"/_/_ <= #node
+    #syncInterestSend: _/"sync"/_ <= #node
+    #syncInterestReceive: _/"sync"/_/_ <= #node
+    #publish: _/_/"sync"/_ <= #node
     '''
     tpm_path = os.path.join(secParamsdir, 'ChatWithSecurityPrivKeys')
     os.makedirs(tpm_path, exist_ok=True)
@@ -91,19 +94,17 @@ def parse_cmd_args() -> dict:
     informationArgs = parser.add_argument_group("information arguments")
     # Adding all Command Line Arguments
     requiredArgs.add_argument("-n", "--nodename",action="append",dest="node_name",required=True,help="flat node names")
-    optionalArgs.add_argument("-gp","--groupprefix",action="store",dest="group_prefix",required=False,help="overrides config | routable group prefix to listen from")
     informationArgs.add_argument("-h","--help",action="help",default=SUPPRESS,help="show this help message and exit")
     # Getting all Arguments
     argvars = parser.parse_args()
     args = {}
-    args["group_prefix"] = argvars.group_prefix if argvars.group_prefix is not None else "/svs"
     args["node_id"] = argvars.node_name
     return args
 
 
 def main() -> int:
     args = parse_cmd_args()
-    asyncio.run(prepare_keys(args["group_prefix"], args["node_id"]))
+    asyncio.run(prepare_keys(args["node_id"]))
 
 if __name__ == "__main__":
     sys.exit(main())
