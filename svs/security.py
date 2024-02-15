@@ -15,6 +15,7 @@ from typing import Union, Optional, Dict
 from ndn.types import Validator
 from ndn.encoding import FormalName, SignaturePtrs, Name, SignatureType
 from ndn.security import Sha256WithEcdsaSigner, Sha256WithRsaSigner, HmacSha256Signer, DigestSha256Signer, sha256_digest_checker
+from envelope import EnvelopeBase
 
 # Class Type: a struct
 # Class Purpose:
@@ -162,13 +163,14 @@ class ValidatingInfo:
 # Class Purpose:
 #   to hold all signing and validating info used in SVS
 class SecurityOptions:
-    __slots__ = ('syncSig','syncVal','dataSig','dataValDict')
+    __slots__ = ('syncSig','syncVal','dataSig','dataValDict', 'envelope')
     # It is not neccessary to include digest or nosignature validators in the dataValidatingInfoDict.
-    def __init__(self, syncSigningInfo:SigningInfo, syncValidatingInfo:ValidatingInfo, dataSigningInfo:SigningInfo, dataValidatingInfoDict:Dict[str, ValidatingInfo]) -> None:
+    def __init__(self, syncSigningInfo:SigningInfo, syncValidatingInfo:ValidatingInfo, dataSigningInfo:SigningInfo, dataValidatingInfoDict:Dict[str, ValidatingInfo], envelope:EnvelopeBase) -> None:
         self.syncSig = syncSigningInfo
         self.syncVal = syncValidatingInfo
         self.dataSig = dataSigningInfo
         self.dataValDict = dataValidatingInfoDict
+        self.envelope = envelope
     async def validate(self, name:FormalName, sig_ptrs:SignaturePtrs):
         val = None
         if sig_ptrs.signature_info.signature_type is None:
