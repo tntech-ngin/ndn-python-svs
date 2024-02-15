@@ -31,7 +31,7 @@ class SVSyncBase():
         self.dataPrefix = dataPrefix
         self.nid = nid
         self.updateCallback = updateCallback
-        self.secOptions = securityOptions if securityOptions is not None else SecurityOptions(SigningInfo(SignatureType.DIGEST_SHA256), ValidatingInfo(ValidatingInfo.get_validator(SignatureType.DIGEST_SHA256)), SigningInfo(SignatureType.DIGEST_SHA256), [])
+        self.secOptions = securityOptions if securityOptions is not None else SecurityOptions(SigningInfo(SignatureType.DIGEST_SHA256), ValidatingInfo(ValidatingInfo.get_validator(SignatureType.DIGEST_SHA256)), SigningInfo(SignatureType.DIGEST_SHA256), [], None)
         self.core = SVSyncCore(self.app, self.syncPrefix, self.nid, self.updateCallback, self.secOptions)
         self.app.route(self.dataPrefix)(self.onDataInterest)
         logging.info(f'SVSync: started listening to {Name.to_str(self.dataPrefix)}')
@@ -69,7 +69,11 @@ class SVSyncBase():
         return None
     def publishData(self, data:bytes) -> None:
         name = self.getDataName(self.nid, self.core.getSeqno()+1)
-        data_packet = make_data(name, MetaInfo(freshness_period=5000), content=data, signer=self.secOptions.dataSig.signer)
+        envelope_signed = None
+        if self.secOptions.envelope is not None:
+            envelope_signed = self.secOptions.envelope.sign_data(name, MetaInfo(freshness_period=5000), content=data)
+        data_packet = envelope_signed if envelope_signed is not None else \
+                      make_data(name, MetaInfo(freshness_period=5000), content=data, signer=self.secOptions.dataSig.signer)
         logging.info(f'SVSync: publishing data {Name.to_str(name)}')
         self.storage.put_packet(name, data_packet)
         self.core.updateStateVector(self.core.getSeqno()+1)
