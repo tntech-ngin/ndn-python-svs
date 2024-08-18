@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "ndn-python-svs"
 version = "0.1.0"
-description = ""
+description = "NDN SVS package for Hydra"
 authors = ["See Authors.rst"]
 packages = [{include = "svs"}]
 
