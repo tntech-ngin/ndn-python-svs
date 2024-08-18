@@ -3,6 +3,7 @@ name = "ndn-python-svs"
 version = "0.1.0"
 description = "NDN SVS package for Hydra"
 authors = ["See Authors.rst"]
+readme = "README.md"
 packages = [{include = "svs"}]
 
 [tool.poetry.dependencies]
