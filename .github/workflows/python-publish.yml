@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - main
+      - traditional
 
 jobs:
   update-version:
