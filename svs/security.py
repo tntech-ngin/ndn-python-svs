@@ -15,7 +15,7 @@ from typing import Union, Optional, Dict
 from ndn.types import Validator
 from ndn.encoding import FormalName, SignaturePtrs, Name, SignatureType
 from ndn.security import Sha256WithEcdsaSigner, Sha256WithRsaSigner, HmacSha256Signer, DigestSha256Signer, sha256_digest_checker
-from envelope import EnvelopeBase
+from ndn-lvs-envelope import EnvelopeBase
 
 # Class Type: a struct
 # Class Purpose:

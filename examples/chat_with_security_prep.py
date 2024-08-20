@@ -21,8 +21,8 @@ import ndn.app_support.security_v2 as sv2
 import ndn.app_support.light_versec.checker as chk
 import ndn.app_support.light_versec.compiler as cpl
 # Custom Imports
-from envelope.impl.storage import Sqlite3Box
-from envelope.impl import EnvelopeImpl
+from ndn-lvs-envelope.impl.storage import Sqlite3Box
+from ndn-lvs-envelope.impl import EnvelopeImpl
 
 logging.basicConfig(format='[{asctime}]{levelname}:{message}',
                     datefmt='%Y-%m-%d %H:%M:%S',
