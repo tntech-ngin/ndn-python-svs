@@ -25,8 +25,8 @@ import ndn.app_support.light_versec.binary as bny
 sys.path.insert(0,'.')
 from svs import *
 
-from ndn-lvs-envelope.impl.storage import Sqlite3Box, ExpressToNetworkBox
-from ndn-lvs-envelope.impl import EnvelopeImpl
+from ndn_lvs_envelope.impl.storage import Sqlite3Box, ExpressToNetworkBox
+from ndn_lvs_envelope.impl import EnvelopeImpl
 
 logging.basicConfig(format='[{asctime}]{levelname}:{message}',
                     datefmt='%Y-%m-%d %H:%M:%S',
