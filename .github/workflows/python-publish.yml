@@ -11,7 +11,7 @@ jobs:
   update-version:
     name: Update Version
     runs-on: ubuntu-latest
-    if: "contains(github.event.worflow_run.head_commit, 'Bump version to')"
+    if: "contains(github.event.head_commit.message, 'Bump version to')"
     outputs:
       new_pkg_version: ${{ steps.version.outputs.pkg_version }}
 
