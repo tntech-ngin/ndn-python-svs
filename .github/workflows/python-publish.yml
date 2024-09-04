@@ -11,6 +11,9 @@ jobs:
   update-version:
     name: Update Version
     runs-on: ubuntu-latest
+    if: "contains(github.event.push.commits[0][message], 'Bump version to')"
+    outputs:
+      new_pkg_version: ${{ steps.version.outputs.pkg_version }}
 
     steps:
       - name: Check out repository
@@ -41,7 +44,7 @@ jobs:
           
           if [[ $new_version ]]; then
             echo "Version bump detected: $new_version"
-            echo "::set-output name=version::$new_version"
+            echo "pkg_version=$new_version" >> $GITHUB_OUTPUT
           else
             echo "No version bump found in the commit messages."
             exit 0
@@ -84,7 +87,7 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
   github-release:
     name: Sign package with Sigstore and upload them to GitHub Release
-    needs: publish-to-pypi
+    needs: [update-version, publish-to-pypi]
     runs-on: ubuntu-latest
     permissions:
       contents: write  # IMPORTANT: mandatory for making GitHub Releases
@@ -96,14 +99,24 @@ jobs:
         with:
           name: python-package-distributions
           path: dist/
+
       - name: Sign the dists with Sigstore
         uses: sigstore/gh-action-sigstore-python@v3.0.0
         with:
           inputs: ./dist/*.tar.gz ./dist/*.whl
+
       - name: Create GitHub Release
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: gh release create '${{ github.ref_name }}' --repo '${{ github.repository }}' --notes ""
+          version: ${{needs.update-version.outputs.new_pkg_version}}
+        run: |
+          echo "Creating release for version: $version"
+          if [ -z "$version" ]; then
+            echo "Error: version is not set."
+            exit 1
+          fi
+          gh release create "$version" --repo "${{ github.repository }}" --notes "Release version $version"
+
       - name: Upload artifact signatures to GitHub Release
         env:
           GITHUB_TOKEN: ${{ github.token }}
